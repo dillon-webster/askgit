@@ -36,8 +36,9 @@ Type your Git question and press Enter. Type `exit` or `quit` to close.
 ## Examples
 
 ```
-You: How do I undo my last commit but keep the changes?
-You: What's the difference between git merge and git rebase?
-You: I accidentally committed to main, how do I move it to a new branch?
-You: My merge has conflicts, walk me through fixing them
+You: How do I start a new repository?
+You: How do I create a new feature branch?
+You: What does git status show me?
+You: I made changes on main, how do I move them to a new branch?
+You: What's the difference between git add and git commit?
 ```
