@@ -17,7 +17,7 @@ export ASKGIT_SERVER_URL=https://web-production-46e20.up.railway.app
 export ASKGIT_TOKEN=your-class-token
 ```
 
-replace <your-class-token> with token provided
+replace "your-class-token" with token provided
 
 Then reload your shell:
 
