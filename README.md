@@ -5,24 +5,19 @@ An AI-powered Git tutor in your terminal. Ask questions, get unstuck, and build 
 ## Installation
 
 ```bash
-pip install askgit
-```
-
-Or install from source:
-
-```bash
-git clone https://github.com/yourname/askgit
-cd askgit
-pip install -e .
+pip install askgit-tutor
 ```
 
 ## Setup
 
-Add your Anthropic API key to `~/.zshrc` (or `~/.bashrc`):
+Add these two lines to your `~/.zshrc`:
 
 ```bash
-export ANTHROPIC_API_KEY="your-api-key-here"
+export ASKGIT_SERVER_URL=https://web-production-46e20.up.railway.app
+export ASKGIT_TOKEN=your-class-token
 ```
+
+replace <your-class-token> with token provided
 
 Then reload your shell:
 
