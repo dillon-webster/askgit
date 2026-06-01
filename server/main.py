@@ -1,6 +1,6 @@
 import os
 
-import anthropic
+from openai import OpenAI
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -60,16 +60,13 @@ Branch names after the prefix should be short and descriptive using kebab-case:
 - Ask a clarifying question if the problem is ambiguous
 - Format commands in code blocks"""
 
-MODEL = "claude-opus-4-7"
+MODEL = "llama3.2:3b"
 
 app = FastAPI()
 security = HTTPBearer(auto_error=False)
 
-_api_key = os.environ.get("ANTHROPIC_API_KEY")
-if not _api_key:
-    raise RuntimeError("ANTHROPIC_API_KEY environment variable not set")
 
-_client = anthropic.Anthropic(api_key=_api_key)
+_client = OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")
 _token = os.environ.get("ASKGIT_TOKEN", "")
 
 
@@ -87,14 +84,15 @@ class ChatRequest(BaseModel):
 @app.post("/chat")
 def chat(request: ChatRequest, _: None = Depends(verify_token)):
     def generate():
-        with _client.messages.stream(
+        stream = _client.chat.completions.create(
             model=MODEL,
+            messages=[{"role": "system", "content": SYSTEM_PROMPT}] + request.messages,
+            stream=True,
             max_tokens=4096,
-            system=SYSTEM_PROMPT,
-            messages=request.messages,
-        ) as stream:
-            for text in stream.text_stream:
-                yield text
+        )
+        for chunk in stream:
+            if chunk.choices[0].delta.content:
+                yield chunk.choices[0].delta.content
 
     return StreamingResponse(generate(), media_type="text/plain")
 
