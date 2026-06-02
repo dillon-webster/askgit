@@ -27,6 +27,13 @@ COPY server/ ./server/
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
+# Store models at /models instead of Ollama's default /root/.ollama. The
+# base image declares /root/.ollama as a VOLUME, and Docker discards
+# anything written to a VOLUME path during build — so a model pulled there
+# never ends up in the final image. /models is a normal path that persists.
+# This ENV applies at build AND runtime, so the server reads the same place.
+ENV OLLAMA_MODELS=/models
+
 # Bake the AI model into the image: start the Ollama server in the
 # background, wait for it to come up, then pull llama3.2:3b. This means the
 # ~2GB model ships inside the image — no download needed at runtime.
