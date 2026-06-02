@@ -49,62 +49,25 @@
       position: fixed;
       inset: 0;
       background:
-        radial-gradient(ellipse 90% 70% at 20% 0%, #1e5fd8 0%, transparent 55%),
-        radial-gradient(ellipse 80% 80% at 90% 100%, #0c2f8f 0%, transparent 55%),
-        linear-gradient(160deg, #0a2a7a 0%, #061a52 60%, #04123a 100%);
+        radial-gradient(42% 52% at 16% 10%, rgba(59,126,245,0.20) 0%, transparent 70%),
+        radial-gradient(46% 56% at 86% 88%, rgba(99,80,220,0.18) 0%, transparent 70%),
+        radial-gradient(34% 40% at 72% 22%, rgba(34,180,220,0.09) 0%, transparent 70%),
+        linear-gradient(160deg, #0b1734 0%, #070f28 55%, #040a1c 100%);
+      box-shadow: inset 0 0 260px 70px rgba(2,8,28,0.6);
       overflow: hidden;
     }
 
-    /* faint dotted grid like a blueprint */
+    /* faint dotted grid */
     #desktop::before {
       content: "";
       position: absolute;
       inset: 0;
       background-image:
-        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
-      background-size: 46px 46px;
-      pointer-events: none;
-    }
-
-    /* floating container motifs */
-    .float-box {
-      position: absolute;
-      border: 2px solid rgba(255,255,255,0.10);
-      border-radius: 10px;
-      background: rgba(255,255,255,0.025);
-      box-shadow: inset 0 0 40px rgba(255,255,255,0.03);
-      pointer-events: none;
-      animation: drift 22s ease-in-out infinite;
-    }
-    .float-box::after {
-      content: "";
-      position: absolute;
-      inset: 8px;
-      border-radius: 6px;
-      background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
-      background-size: 100% 12px;
-    }
-    .fb1 { width: 180px; height: 130px; top: 14%; right: 22%; animation-delay: 0s;   transform: rotate(-8deg); }
-    .fb2 { width: 120px; height: 90px;  top: 60%; right: 12%; animation-delay: -6s;  transform: rotate(6deg); }
-    .fb3 { width: 90px;  height: 70px;  top: 74%; left: 30%;  animation-delay: -12s; transform: rotate(-4deg); }
-    .fb4 { width: 150px; height: 110px; top: 38%; right: 6%;  animation-delay: -3s;  transform: rotate(10deg); }
-
-    @keyframes drift {
-      0%, 100% { transform: translateY(0)    rotate(var(--r, 0deg)); }
-      50%      { transform: translateY(-26px) rotate(var(--r, 0deg)); }
-    }
-    .fb1 { --r: -8deg; } .fb2 { --r: 6deg; } .fb3 { --r: -4deg; } .fb4 { --r: 10deg; }
-
-    /* a big translucent whale silhouette */
-    .whale {
-      position: absolute;
-      bottom: 8%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 420px;
-      height: 200px;
-      opacity: 0.06;
+        linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+      background-size: 54px 54px;
+      mask-image: radial-gradient(ellipse 100% 100% at 50% 40%, black 55%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 100% 100% at 50% 40%, black 55%, transparent 100%);
       pointer-events: none;
     }
 
@@ -132,8 +95,44 @@
       font-weight: 800; letter-spacing: -0.01em;
     }
     #menubar .mb-logo svg { width: 22px; height: 22px; }
-    #menubar .mb-item { color: #c7d4ea; font-weight: 500; cursor: default; }
-    #menubar .mb-item:hover { color: #fff; }
+    .mb-menu { position: relative; height: 100%; display: flex; align-items: center; }
+    #menubar .mb-item { color: #c7d4ea; font-weight: 500; cursor: default; padding: 3px 8px; border-radius: 6px; }
+    .mb-menu:hover > .mb-item,
+    .mb-menu.open > .mb-item { color: #fff; background: rgba(255,255,255,0.13); }
+
+    .dropdown {
+      position: absolute; top: 30px; left: 0;
+      min-width: 224px;
+      background: rgba(18,28,52,0.94);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 11px;
+      padding: 6px;
+      box-shadow: 0 22px 54px rgba(0,0,0,0.55);
+      display: none;
+    }
+    .mb-menu.open .dropdown { display: block; }
+    .dd-item {
+      display: flex; align-items: center; justify-content: space-between; gap: 24px;
+      padding: 7px 11px; border-radius: 7px;
+      font-size: 0.82rem; font-weight: 500; color: #dce6f7;
+      white-space: nowrap; cursor: pointer;
+    }
+    .dd-item:hover { background: var(--blue); color: #fff; }
+    .dd-item .sc { font-size: 0.74rem; opacity: 0.5; font-family: var(--mono); }
+    .dd-sep { height: 1px; background: rgba(255,255,255,0.1); margin: 5px 8px; }
+
+    #toast {
+      position: fixed; top: 50px; left: 50%; transform: translateX(-50%) translateY(-8px);
+      z-index: 9700;
+      background: rgba(13,26,60,0.92); backdrop-filter: blur(14px);
+      border: 1px solid var(--border-blue); border-radius: 100px;
+      padding: 8px 20px; font-size: 0.84rem; font-weight: 600; color: #cfe0ff;
+      box-shadow: 0 12px 34px rgba(0,0,0,0.45);
+      opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     #menubar .mb-right {
       margin-left: auto;
       display: flex; align-items: center; gap: 18px;
@@ -163,19 +162,26 @@
     .desktop-icon:hover { background: rgba(255,255,255,0.08); }
     .desktop-icon.selected { background: rgba(59,126,245,0.28); outline: 1px solid rgba(122,171,255,0.5); }
     .desktop-icon .ico {
-      width: 56px; height: 56px;
-      margin: 0 auto 7px;
+      width: 58px; height: 58px;
+      margin: 0 auto 8px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 30px;
-      border-radius: 13px;
-      background: linear-gradient(160deg, #1f6bf0, #0c3aa0);
-      box-shadow: 0 6px 16px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+      border-radius: 15px;
+      background: linear-gradient(160deg, #2f7bf6, #0c3aa0);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.3);
+      transition: transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s;
     }
-    .desktop-icon .ico.doc   { background: linear-gradient(160deg,#2b3650,#161d2e); }
-    .desktop-icon .ico.term  { background: linear-gradient(160deg,#0d1117,#000); border:1px solid rgba(255,255,255,0.12); }
-    .desktop-icon .ico.green { background: linear-gradient(160deg,#22c55e,#0f7a38); }
-    .desktop-icon .ico.amber { background: linear-gradient(160deg,#f59e0b,#a8650a); }
-    .desktop-icon .ico.purple{ background: linear-gradient(160deg,#a78bfa,#6d3fd6); }
+    .desktop-icon:hover .ico {
+      transform: translateY(-3px) scale(1.04);
+      box-shadow: 0 11px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.36);
+    }
+    .desktop-icon .ico.doc   { background: linear-gradient(160deg,#46556f,#1b2435); }
+    .desktop-icon .ico.term  { background: linear-gradient(160deg,#1a212e,#05080d); }
+    .desktop-icon .ico.green { background: linear-gradient(160deg,#2bd46c,#0f7a38); }
+    .desktop-icon .ico.amber { background: linear-gradient(160deg,#f7a823,#b9670a); }
+    .desktop-icon .ico.purple{ background: linear-gradient(160deg,#b18cff,#6d3fd6); }
+    .ico-svg { width: 31px; height: 31px; display: block; }
+    .duo-fill { fill: #fff; opacity: .26; }
+    .duo-line { fill: none; stroke: #fff; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
     .desktop-icon .label {
       font-size: 0.76rem;
       font-weight: 600;
@@ -217,8 +223,9 @@
       align-items: center;
       gap: 8px;
       padding: 0 14px;
-      background: linear-gradient(180deg, #1a2742, #131d31);
+      background: linear-gradient(180deg, #1d2c4a, #131d31);
       border-bottom: 1px solid rgba(255,255,255,0.06);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.07);
       cursor: grab;
     }
     .titlebar:active { cursor: grabbing; }
@@ -409,20 +416,20 @@
     }
     .dock-item {
       position: relative;
-      width: 52px; height: 52px;
+      width: 54px; height: 54px;
       border-radius: 14px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 26px;
       cursor: pointer;
-      background: linear-gradient(160deg, #1f6bf0, #0c3aa0);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 12px rgba(0,0,0,0.35);
+      background: linear-gradient(160deg, #2f7bf6, #0c3aa0);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 4px 12px rgba(0,0,0,0.4);
       transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1);
     }
-    .dock-item.doc   { background: linear-gradient(160deg,#2b3650,#161d2e); }
-    .dock-item.term  { background: linear-gradient(160deg,#0d1117,#000); border:1px solid rgba(255,255,255,0.12); }
-    .dock-item.green { background: linear-gradient(160deg,#22c55e,#0f7a38); }
-    .dock-item.amber { background: linear-gradient(160deg,#f59e0b,#a8650a); }
-    .dock-item.purple{ background: linear-gradient(160deg,#a78bfa,#6d3fd6); }
+    .dock-item.doc   { background: linear-gradient(160deg,#46556f,#1b2435); }
+    .dock-item.term  { background: linear-gradient(160deg,#1a212e,#05080d); }
+    .dock-item.green { background: linear-gradient(160deg,#2bd46c,#0f7a38); }
+    .dock-item.amber { background: linear-gradient(160deg,#f7a823,#b9670a); }
+    .dock-item.purple{ background: linear-gradient(160deg,#b18cff,#6d3fd6); }
+    .dock-ico { width: 30px; height: 30px; display: block; }
     .dock-item:hover { transform: translateY(-12px) scale(1.18); }
     .dock-item .tip {
       position: absolute; bottom: calc(100% + 12px); left: 50%; transform: translateX(-50%);
@@ -498,15 +505,6 @@
 
   <!-- ═══════════════ DESKTOP ═══════════════ -->
   <div id="desktop">
-    <div class="float-box fb1"></div>
-    <div class="float-box fb2"></div>
-    <div class="float-box fb3"></div>
-    <div class="float-box fb4"></div>
-    <svg class="whale" viewBox="0 0 200 100" fill="white" xmlns="http://www.w3.org/2000/svg">
-      <path d="M20 60 q0-22 26-22 l60 0 q30 0 44 18 q14-6 26-4 q-8 8-6 16 q4 8-2 16 l-130 0 q-26 0-26-22 z"/>
-      <circle cx="40" cy="52" r="3" fill="#04123a"/>
-    </svg>
-
     <!-- ICONS -->
     <div id="icon-layer">
       <div class="desktop-icon" data-win="readme"   style="top:6px;   left:8px;"><div class="ico doc">📄</div><div class="label">README.md</div></div>
@@ -528,11 +526,49 @@
       <svg viewBox="0 0 24 24" fill="#fff" xmlns="http://www.w3.org/2000/svg"><path d="M3 11h3v3H3zm4 0h3v3H7zm4 0h3v3h-3zM7 7h3v3H7zm4 0h3v3h-3zm0-4h3v3h-3zM21 11.5s-1.4-1-3-.7c-.2-1.3-1.5-2-1.5-2s-1 1.2-.7 2.6c-1 .3-2 .5-2 .5H1.5c-.5 4 2 7.6 6.5 7.6 4 0 7-2 8.5-5.5 1.7.1 2.9-1.2 3-2.4-.4-.2-.7 0-1-.1z"/></svg>
       DockerOS
     </div>
-    <span class="mb-item" style="font-weight:700;">File</span>
-    <span class="mb-item">Edit</span>
-    <span class="mb-item">View</span>
-    <span class="mb-item">Window</span>
-    <span class="mb-item">Help</span>
+    <div class="mb-menu" data-menu="file">
+      <span class="mb-item" style="font-weight:700;">File</span>
+      <div class="dropdown">
+        <div class="dd-item" data-act="open" data-win="readme">Open README</div>
+        <div class="dd-item" data-act="open" data-win="dockerfile">Open Dockerfile</div>
+        <div class="dd-item" data-act="open" data-win="terminal">New Terminal</div>
+        <div class="dd-item" data-act="open" data-win="setup">Open Get Started</div>
+        <div class="dd-sep"></div>
+        <div class="dd-item" data-act="reboot">Restart Presentation <span class="sc">⌘R</span></div>
+      </div>
+    </div>
+    <div class="mb-menu" data-menu="edit">
+      <span class="mb-item">Edit</span>
+      <div class="dropdown">
+        <div class="dd-item" data-act="copy" data-text="curl -s https://raw.githubusercontent.com/dillon-webster/askgit/main/chat.sh -o chat.sh &amp;&amp; chmod +x chat.sh &amp;&amp; ./chat.sh">Copy install command</div>
+        <div class="dd-item" data-act="copy" data-text="docker run -d -p 8000:8000 --name askgit dillonwebster/askgit">Copy <code style="all:unset;">docker run</code> command</div>
+      </div>
+    </div>
+    <div class="mb-menu" data-menu="view">
+      <span class="mb-item">View</span>
+      <div class="dropdown">
+        <div class="dd-item" data-act="cascade">Cascade Windows <span class="sc">C</span></div>
+        <div class="dd-item" data-act="minall">Minimize All</div>
+        <div class="dd-item" data-act="closeall">Close All Windows <span class="sc">⇧⌘W</span></div>
+        <div class="dd-sep"></div>
+        <div class="dd-item" data-act="hint">Show Tips <span class="sc">H</span></div>
+      </div>
+    </div>
+    <div class="mb-menu" data-menu="window">
+      <span class="mb-item">Window</span>
+      <div class="dropdown">
+        <div class="dd-item" data-act="front">Bring All to Front</div>
+        <div class="dd-item" data-act="minall">Minimize All</div>
+        <div class="dd-item" data-act="closeall">Close All</div>
+      </div>
+    </div>
+    <div class="mb-menu" data-menu="help">
+      <span class="mb-item">Help</span>
+      <div class="dropdown">
+        <div class="dd-item" data-act="open" data-win="about">About askgit</div>
+        <div class="dd-item" data-act="hint">How to use</div>
+      </div>
+    </div>
     <div class="mb-right">
       <span class="wifi">⌃ Docker running</span>
       <span class="battery">🔋 100%</span>
@@ -839,24 +875,46 @@
 
   <!-- ═══════════════ DOCK ═══════════════ -->
   <div id="dock">
-    <div class="dock-item doc"    data-win="readme">📄<span class="tip">README</span><span class="run-dot"></span></div>
-    <div class="dock-item"        data-win="concepts">🧩<span class="tip">Concepts</span><span class="run-dot"></span></div>
-    <div class="dock-item purple" data-win="diagram">🔀<span class="tip">Flow diagram</span><span class="run-dot"></span></div>
-    <div class="dock-item green"  data-win="usecases">✓<span class="tip">When to use</span><span class="run-dot"></span></div>
-    <div class="dock-item amber"  data-win="setup">🚀<span class="tip">Get Started</span><span class="run-dot"></span></div>
+    <div class="dock-item doc"    data-win="readme"><span class="dock-ico"></span><span class="tip">README</span><span class="run-dot"></span></div>
+    <div class="dock-item"        data-win="concepts"><span class="dock-ico"></span><span class="tip">Concepts</span><span class="run-dot"></span></div>
+    <div class="dock-item purple" data-win="diagram"><span class="dock-ico"></span><span class="tip">Flow diagram</span><span class="run-dot"></span></div>
+    <div class="dock-item green"  data-win="usecases"><span class="dock-ico"></span><span class="tip">When to use</span><span class="run-dot"></span></div>
+    <div class="dock-item amber"  data-win="setup"><span class="dock-ico"></span><span class="tip">Get Started</span><span class="run-dot"></span></div>
     <div class="dock-sep"></div>
-    <div class="dock-item amber"  data-win="dockerfile">📜<span class="tip">Dockerfile</span><span class="run-dot"></span></div>
-    <div class="dock-item term"   data-win="terminal">▤<span class="tip">askgit terminal</span><span class="run-dot"></span></div>
-    <div class="dock-item green"  data-win="tryit">⌨<span class="tip">Try it</span><span class="run-dot"></span></div>
+    <div class="dock-item amber"  data-win="dockerfile"><span class="dock-ico"></span><span class="tip">Dockerfile</span><span class="run-dot"></span></div>
+    <div class="dock-item term"   data-win="terminal"><span class="dock-ico"></span><span class="tip">askgit terminal</span><span class="run-dot"></span></div>
+    <div class="dock-item green"  data-win="tryit"><span class="dock-ico"></span><span class="tip">Try it</span><span class="run-dot"></span></div>
     <div class="dock-sep"></div>
-    <div class="dock-item"        data-win="about">👤<span class="tip">About</span><span class="run-dot"></span></div>
+    <div class="dock-item"        data-win="about"><span class="dock-ico"></span><span class="tip">About</span><span class="run-dot"></span></div>
   </div>
 
-  <div id="hint">Double-click an icon — or tap the dock — to open a window. Drag the title bars to move them around.</div>
+  <div id="hint">Double-click an icon — or tap the dock — to open a window. Drag the title bars to move them. <b>Esc</b> closes the active window.</div>
+  <div id="toast"></div>
 
   <script>
   (function () {
     "use strict";
+
+    /* ── 0. Inject duotone SVG icons (desktop + dock) ── */
+    var ICONS = {
+      readme:     '<svg class="ico-svg" viewBox="0 0 24 24"><rect class="duo-fill" x="5" y="3" width="14" height="18" rx="2.5"/><rect class="duo-line" x="5" y="3" width="14" height="18" rx="2.5"/><path class="duo-line" d="M8.5 8h7M8.5 12h7M8.5 16h4.5"/></svg>',
+      concepts:   '<svg class="ico-svg" viewBox="0 0 24 24"><rect class="duo-fill" x="4" y="4" width="7" height="7" rx="1.6"/><rect class="duo-fill" x="13" y="13" width="7" height="7" rx="1.6"/><rect class="duo-line" x="4" y="4" width="7" height="7" rx="1.6"/><rect class="duo-line" x="13" y="4" width="7" height="7" rx="1.6"/><rect class="duo-line" x="4" y="13" width="7" height="7" rx="1.6"/><rect class="duo-line" x="13" y="13" width="7" height="7" rx="1.6"/></svg>',
+      diagram:    '<svg class="ico-svg" viewBox="0 0 24 24"><circle class="duo-fill" cx="6" cy="12" r="3"/><circle class="duo-line" cx="6" cy="12" r="3"/><circle class="duo-line" cx="18" cy="6" r="3"/><circle class="duo-line" cx="18" cy="18" r="3"/><path class="duo-line" d="M8.7 10.8l6.6-3.3M8.7 13.2l6.6 3.3"/></svg>',
+      usecases:   '<svg class="ico-svg" viewBox="0 0 24 24"><rect class="duo-fill" x="4" y="4" width="16" height="16" rx="4"/><rect class="duo-line" x="4" y="4" width="16" height="16" rx="4"/><path class="duo-line" d="M8.3 12l2.5 2.5 4.9-5.4"/></svg>',
+      setup:      '<svg class="ico-svg" viewBox="0 0 24 24"><path class="duo-fill" d="M12 2.5c2.8 2 4 5.4 4 8.5l-1.8 2.2H9.8L8 11c0-3.1 1.2-6.5 4-8.5z"/><path class="duo-line" d="M12 2.5c2.8 2 4 5.4 4 8.5l-1.8 2.2H9.8L8 11c0-3.1 1.2-6.5 4-8.5z"/><circle class="duo-line" cx="12" cy="9.3" r="1.5"/><path class="duo-line" d="M9.6 14l-2 2.4.6 2.8 2-1.3M14.4 14l2 2.4-.6 2.8-2-1.3"/></svg>',
+      dockerfile: '<svg class="ico-svg" viewBox="0 0 24 24"><path class="duo-fill" d="M7 3h7l4 4v14H7z"/><path class="duo-line" d="M14 3v4h4M7 3h7l4 4v14H7z"/><path class="duo-line" d="M11 12.3l-1.8 1.9 1.8 1.9M14 12.3l1.8 1.9-1.8 1.9"/></svg>',
+      terminal:   '<svg class="ico-svg" viewBox="0 0 24 24"><rect class="duo-fill" x="3" y="5" width="18" height="14" rx="2.5"/><rect class="duo-line" x="3" y="5" width="18" height="14" rx="2.5"/><path class="duo-line" d="M7 10l3 2.5-3 2.5M13 15h4.5"/></svg>',
+      tryit:      '<svg class="ico-svg" viewBox="0 0 24 24"><circle class="duo-fill" cx="12" cy="12" r="9"/><circle class="duo-line" cx="12" cy="12" r="9"/><path class="duo-line" d="M10.3 8.4l5.2 3.6-5.2 3.6z"/></svg>',
+      about:      '<svg class="ico-svg" viewBox="0 0 24 24"><circle class="duo-fill" cx="12" cy="8" r="3.8"/><circle class="duo-line" cx="12" cy="8" r="3.8"/><path class="duo-line" d="M5.5 20c0-3.6 3-6 6.5-6s6.5 2.4 6.5 6"/></svg>'
+    };
+    document.querySelectorAll(".desktop-icon").forEach(function (icon) {
+      var ico = icon.querySelector(".ico"), key = icon.getAttribute("data-win");
+      if (ico && ICONS[key]) ico.innerHTML = ICONS[key];
+    });
+    document.querySelectorAll(".dock-item").forEach(function (di) {
+      var slot = di.querySelector(".dock-ico"), key = di.getAttribute("data-win");
+      if (slot && ICONS[key]) slot.innerHTML = ICONS[key];
+    });
 
     var zCounter = 100;
     var openWindows = {};   // id -> true
@@ -890,9 +948,15 @@
       var win = winEl(id);
       if (!win) return;
 
-      // already open → just focus + un-minimize
+      // already open → focus, and restore it if it was minimized
       if (openWindows[id]) {
         win.classList.remove("minimizing");
+        if (!win.classList.contains("open")) {
+          win.classList.add("open");
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () { win.classList.add("shown"); });
+          });
+        }
         focusWindow(win);
         return;
       }
@@ -1057,6 +1121,96 @@
     function killHint() { hint.classList.add("gone"); }
     document.querySelectorAll(".desktop-icon, .dock-item").forEach(function (el) {
       el.addEventListener("click", killHint, { once: true });
+    });
+
+    /* ── Menu bar dropdowns + actions ── */
+    function eachOpenWin(fn) {
+      Object.keys(openWindows).forEach(function (id) {
+        if (openWindows[id]) { var w = winEl(id); if (w) fn(w, id); }
+      });
+    }
+    function closeAll()       { eachOpenWin(function (w) { closeWindow(w); }); }
+    function minimizeAll()    { eachOpenWin(function (w) { if (w.classList.contains("open")) minimizeWindow(w); }); }
+    function bringAllFront()  { Object.keys(openWindows).forEach(function (id) { if (openWindows[id]) openWindow(id); }); }
+    function cascadeWindows() {
+      var x = 140, y = 80;
+      Object.keys(openWindows).forEach(function (id) {
+        if (!openWindows[id]) return;
+        openWindow(id);
+        var w = winEl(id); if (!w) return;
+        w.style.left = x + "px"; w.style.top = y + "px";
+        focusWindow(w); x += 36; y += 34;
+      });
+    }
+    function toast(msg) {
+      var t = document.getElementById("toast");
+      t.textContent = msg; t.classList.add("show");
+      clearTimeout(t._tmr);
+      t._tmr = setTimeout(function () { t.classList.remove("show"); }, 1700);
+    }
+    function copyText(txt) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(
+          function () { toast("Copied to clipboard ✓"); },
+          function () { toast("Copy failed"); }
+        );
+      } else { toast("Clipboard not available"); }
+    }
+
+    function closeMenus() {
+      document.querySelectorAll(".mb-menu.open").forEach(function (m) { m.classList.remove("open"); });
+    }
+    document.querySelectorAll(".mb-menu").forEach(function (menu) {
+      menu.querySelector(".mb-item").addEventListener("click", function (e) {
+        e.stopPropagation();
+        var was = menu.classList.contains("open");
+        closeMenus();
+        if (!was) menu.classList.add("open");
+      });
+      // once a menu is open, hovering another switches to it (like a real menu bar)
+      menu.addEventListener("mouseenter", function () {
+        if (document.querySelector(".mb-menu.open")) { closeMenus(); menu.classList.add("open"); }
+      });
+    });
+    document.addEventListener("click", closeMenus);
+
+    /* ── Keyboard shortcuts ── */
+    document.addEventListener("keydown", function (e) {
+      // Esc: close an open menu first; otherwise close the focused window
+      if (e.key === "Escape") {
+        if (document.querySelector(".mb-menu.open")) { closeMenus(); return; }
+        var f = document.querySelector(".window.focused.open");
+        if (f) closeWindow(f);
+        return;
+      }
+      // ignore if typing somewhere editable
+      if (e.target && (e.target.isContentEditable || /input|textarea/i.test(e.target.tagName))) return;
+
+      var k = e.key.toLowerCase();
+      // Ctrl/Cmd+Shift+W → Close All (Cmd+W alone is reserved by the browser)
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && k === "w") { e.preventDefault(); closeAll(); }
+      // plain keys (no modifier)
+      else if (!e.metaKey && !e.ctrlKey && !e.altKey) {
+        if      (k === "m") { var w = document.querySelector(".window.focused.open"); if (w) minimizeWindow(w); }
+        else if (k === "c") { cascadeWindows(); }
+        else if (k === "h") { document.getElementById("hint").classList.remove("gone"); }
+      }
+    });
+
+    document.querySelectorAll(".dd-item").forEach(function (it) {
+      it.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var act = it.getAttribute("data-act");
+        if      (act === "open")     openWindow(it.getAttribute("data-win"));
+        else if (act === "reboot")   location.reload();
+        else if (act === "closeall") closeAll();
+        else if (act === "minall")   minimizeAll();
+        else if (act === "front")    bringAllFront();
+        else if (act === "cascade")  cascadeWindows();
+        else if (act === "copy")     copyText(it.getAttribute("data-text"));
+        else if (act === "hint")     document.getElementById("hint").classList.remove("gone");
+        closeMenus();
+      });
     });
 
     /* ── Boot sequence ── */
