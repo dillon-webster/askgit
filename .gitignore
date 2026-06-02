@@ -6,3 +6,5 @@ build/
 .venv/
 venv/
 .env
+PRESENTATION-RECAP.md
+notes.html

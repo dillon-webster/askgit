@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DockerOS — Dillon Webster</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --blue:       #1d63ed;
+      --blue-light: #3b7ef5;
+      --blue-deep:  #0a3aa8;
+      --bg-card:    #111827;
+      --bg-card2:   #141d2e;
+      --border:     rgba(255,255,255,0.08);
+      --border-blue:rgba(29,99,237,0.4);
+      --text:       #e8edf5;
+      --text-muted: #8aa0bd;
+      --green:      #22c55e;
+      --orange:     #f59e0b;
+      --purple:     #a78bfa;
+      --mono:       "JetBrains Mono", "Fira Code", monospace;
+      --sans:       "Inter", -apple-system, sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: var(--sans);
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1.6;
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─────────────────────────────────────────
+       DESKTOP / WALLPAPER
+    ───────────────────────────────────────── */
+
+    #desktop {
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 90% 70% at 20% 0%, #1e5fd8 0%, transparent 55%),
+        radial-gradient(ellipse 80% 80% at 90% 100%, #0c2f8f 0%, transparent 55%),
+        linear-gradient(160deg, #0a2a7a 0%, #061a52 60%, #04123a 100%);
+      overflow: hidden;
+    }
+
+    /* faint dotted grid like a blueprint */
+    #desktop::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 46px 46px;
+      pointer-events: none;
+    }
+
+    /* floating container motifs */
+    .float-box {
+      position: absolute;
+      border: 2px solid rgba(255,255,255,0.10);
+      border-radius: 10px;
+      background: rgba(255,255,255,0.025);
+      box-shadow: inset 0 0 40px rgba(255,255,255,0.03);
+      pointer-events: none;
+      animation: drift 22s ease-in-out infinite;
+    }
+    .float-box::after {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border-radius: 6px;
+      background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+      background-size: 100% 12px;
+    }
+    .fb1 { width: 180px; height: 130px; top: 14%; right: 22%; animation-delay: 0s;   transform: rotate(-8deg); }
+    .fb2 { width: 120px; height: 90px;  top: 60%; right: 12%; animation-delay: -6s;  transform: rotate(6deg); }
+    .fb3 { width: 90px;  height: 70px;  top: 74%; left: 30%;  animation-delay: -12s; transform: rotate(-4deg); }
+    .fb4 { width: 150px; height: 110px; top: 38%; right: 6%;  animation-delay: -3s;  transform: rotate(10deg); }
+
+    @keyframes drift {
+      0%, 100% { transform: translateY(0)    rotate(var(--r, 0deg)); }
+      50%      { transform: translateY(-26px) rotate(var(--r, 0deg)); }
+    }
+    .fb1 { --r: -8deg; } .fb2 { --r: 6deg; } .fb3 { --r: -4deg; } .fb4 { --r: 10deg; }
+
+    /* a big translucent whale silhouette */
+    .whale {
+      position: absolute;
+      bottom: 8%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 420px;
+      height: 200px;
+      opacity: 0.06;
+      pointer-events: none;
+    }
+
+    /* ─────────────────────────────────────────
+       TOP MENU BAR
+    ───────────────────────────────────────── */
+
+    #menubar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 36px;
+      z-index: 9000;
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      padding: 0 18px;
+      background: rgba(10,22,55,0.55);
+      backdrop-filter: blur(18px) saturate(160%);
+      -webkit-backdrop-filter: blur(18px) saturate(160%);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      font-size: 0.82rem;
+    }
+    #menubar .mb-logo {
+      display: flex; align-items: center; gap: 8px;
+      font-weight: 800; letter-spacing: -0.01em;
+    }
+    #menubar .mb-logo svg { width: 22px; height: 22px; }
+    #menubar .mb-item { color: #c7d4ea; font-weight: 500; cursor: default; }
+    #menubar .mb-item:hover { color: #fff; }
+    #menubar .mb-right {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 18px;
+      font-family: var(--mono); font-size: 0.78rem; color: #c7d4ea;
+    }
+    #menubar .mb-right .battery,
+    #menubar .mb-right .wifi { opacity: 0.8; }
+
+    /* ─────────────────────────────────────────
+       DESKTOP ICONS
+    ───────────────────────────────────────── */
+
+    #icon-layer {
+      position: absolute;
+      top: 56px; bottom: 96px; left: 0; right: 0;
+      padding: 8px 18px;
+    }
+    .desktop-icon {
+      position: absolute;
+      width: 92px;
+      text-align: center;
+      cursor: pointer;
+      padding: 8px 6px;
+      border-radius: 10px;
+      transition: background 0.15s;
+    }
+    .desktop-icon:hover { background: rgba(255,255,255,0.08); }
+    .desktop-icon.selected { background: rgba(59,126,245,0.28); outline: 1px solid rgba(122,171,255,0.5); }
+    .desktop-icon .ico {
+      width: 56px; height: 56px;
+      margin: 0 auto 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 30px;
+      border-radius: 13px;
+      background: linear-gradient(160deg, #1f6bf0, #0c3aa0);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+    }
+    .desktop-icon .ico.doc   { background: linear-gradient(160deg,#2b3650,#161d2e); }
+    .desktop-icon .ico.term  { background: linear-gradient(160deg,#0d1117,#000); border:1px solid rgba(255,255,255,0.12); }
+    .desktop-icon .ico.green { background: linear-gradient(160deg,#22c55e,#0f7a38); }
+    .desktop-icon .ico.amber { background: linear-gradient(160deg,#f59e0b,#a8650a); }
+    .desktop-icon .ico.purple{ background: linear-gradient(160deg,#a78bfa,#6d3fd6); }
+    .desktop-icon .label {
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: #eaf1ff;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+      word-break: break-word;
+      line-height: 1.25;
+    }
+
+    /* ─────────────────────────────────────────
+       WINDOWS
+    ───────────────────────────────────────── */
+
+    .window {
+      position: absolute;
+      top: 90px; left: 160px;
+      width: 720px;
+      max-width: calc(100vw - 40px);
+      max-height: calc(100vh - 150px);
+      display: none;
+      flex-direction: column;
+      background: #0d1422;
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 13px;
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.4);
+      opacity: 0;
+      transform: scale(0.96);
+      transition: opacity 0.16s ease, transform 0.16s cubic-bezier(0.22,1,0.36,1);
+    }
+    .window.open { display: flex; }
+    .window.shown { opacity: 1; transform: scale(1); }
+    .window.minimizing { opacity: 0; transform: scale(0.5) translateY(40vh); }
+
+    .titlebar {
+      flex: none;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 14px;
+      background: linear-gradient(180deg, #1a2742, #131d31);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      cursor: grab;
+    }
+    .titlebar:active { cursor: grabbing; }
+    .traffic { display: flex; gap: 8px; }
+    .tl {
+      width: 13px; height: 13px; border-radius: 50%;
+      cursor: pointer; position: relative;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; color: rgba(0,0,0,0.5); font-weight: 900;
+    }
+    .tl-red    { background: #ff5f57; }
+    .tl-yellow { background: #ffbd2e; }
+    .tl-green  { background: #28c840; }
+    .tl span { opacity: 0; }
+    .traffic:hover .tl span { opacity: 1; }
+    .titlebar .win-title {
+      flex: 1; text-align: center;
+      font-size: 0.8rem; font-weight: 600; color: #b9c8e2;
+      font-family: var(--mono);
+      margin-right: 50px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      pointer-events: none;
+    }
+
+    .win-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 34px 38px 40px;
+    }
+    .win-body::-webkit-scrollbar { width: 11px; }
+    .win-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.13); border-radius: 8px; border: 3px solid #0d1422; }
+
+    .window.focused { box-shadow: 0 36px 90px rgba(0,0,0,0.7), 0 0 0 1px var(--border-blue), 0 0 60px rgba(29,99,237,0.18); }
+
+    /* ─────────────────────────────────────────
+       CONTENT TYPOGRAPHY (inside windows)
+    ───────────────────────────────────────── */
+
+    .win-body h1 {
+      font-size: 2rem; font-weight: 900; letter-spacing: -0.02em;
+      line-height: 1.1; margin-bottom: 16px;
+    }
+    .h1-accent {
+      background: linear-gradient(135deg, #3b7ef5 0%, #60a5fa 50%, #a78bfa 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .win-body h2 { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 14px; }
+    .win-body h3 { font-size: 1.02rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .win-body p { color: #adbbd0; margin-bottom: 14px; user-select: text; }
+    .win-body p:last-child { margin-bottom: 0; }
+    .win-body p strong { color: var(--text); font-weight: 600; }
+    .lead { font-size: 1.12rem; color: var(--text-muted) !important; }
+
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(29,99,237,0.14); border: 1px solid var(--border-blue);
+      border-radius: 100px; padding: 5px 14px;
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #7aabff; margin-bottom: 18px;
+    }
+    .eyebrow::before {
+      content: ""; width: 7px; height: 7px; border-radius: 50%;
+      background: var(--blue-light); box-shadow: 0 0 8px var(--blue-light);
+      animation: pulse 2.4s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.35;} }
+
+    .problem-box {
+      background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.03));
+      border: 1px solid rgba(245,158,11,0.2); border-left: 3px solid var(--orange);
+      border-radius: 10px; padding: 20px 24px; margin-top: 20px;
+    }
+    .problem-box p { margin: 0; color: #d4b896; }
+    .problem-box .qm { font-size: 1.8rem; line-height: 1; color: var(--orange); font-family: Georgia, serif; display:block; margin-bottom: 4px; }
+
+    /* concept cards */
+    .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 8px; }
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 22px; position: relative; overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+    .card::before {
+      content:""; position:absolute; top:0; left:0; right:0; height:2px;
+      background: linear-gradient(90deg, transparent, var(--ca, var(--blue)), transparent); opacity:0.7;
+    }
+    .card:nth-child(1){--ca:#3b82f6;} .card:nth-child(2){--ca:#22c55e;}
+    .card:nth-child(3){--ca:#f59e0b;} .card:nth-child(4){--ca:#a78bfa;}
+    .card:hover {
+      transform: translateY(-4px); border-color: var(--ca);
+      box-shadow: 0 10px 34px rgba(0,0,0,0.45), 0 0 30px color-mix(in srgb, var(--ca) 28%, transparent);
+    }
+    .card .ci {
+      width: 38px; height: 38px; border-radius: 10px; margin-bottom: 12px;
+      display:flex; align-items:center; justify-content:center; font-size: 1.1rem;
+      background: color-mix(in srgb, var(--ca) 14%, transparent);
+      border: 1px solid color-mix(in srgb, var(--ca) 30%, transparent);
+    }
+    .card p { font-size: 0.88rem; margin: 0; }
+
+    /* diagram */
+    .diagram { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 30px 22px; text-align:center; }
+    .diagram-label { font-size: 0.7rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color: var(--text-muted); margin-bottom: 24px; }
+    .diagram-flow { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; row-gap:18px; }
+    .dbox { background: var(--bg-card2); border:1px solid var(--border); border-radius:10px; padding:14px 18px; min-width:120px; transition: transform .2s cubic-bezier(.34,1.56,.64,1), filter .2s, box-shadow .2s; }
+    .dbox:hover { transform: scale(1.06); filter: brightness(1.25); box-shadow:0 8px 24px rgba(0,0,0,.4); }
+    .dbox.image-box{ border-color: rgba(59,130,246,.4); background: rgba(29,99,237,.08); }
+    .dbox.df-box{ border-color: rgba(245,158,11,.35); background: rgba(245,158,11,.06); }
+    .dbox.cont-box{ border-color: rgba(34,197,94,.35); background: rgba(34,197,94,.06); }
+    .dbox.hub-box{ border-color: rgba(167,139,250,.35); background: rgba(167,139,250,.06); }
+    .dbox .bi { font-size: 1.4rem; display:block; margin-bottom:5px; }
+    .dbox .bt { font-size: 0.86rem; font-weight:700; color: var(--text); display:block; }
+    .dbox .bs { font-size: 0.68rem; color: var(--text-muted); font-family: var(--mono); display:block; margin-top:2px; }
+    .darrow { display:flex; flex-direction:column; align-items:center; gap:2px; padding:0 8px; }
+    .darrow .al { font-size: 0.62rem; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color: var(--text-muted); white-space:nowrap; }
+    .darrow .ln { display:flex; align-items:center; }
+    .darrow .dash { width:30px; height:1.5px; }
+    .darrow .head { width:0; height:0; border-top:5px solid transparent; border-bottom:5px solid transparent; }
+    .a-build .dash{ background: linear-gradient(90deg, rgba(245,158,11,.6), #f59e0b); } .a-build .head{ border-left:8px solid var(--orange); }
+    .a-run   .dash{ background: linear-gradient(90deg, rgba(59,130,246,.6), #22c55e); }  .a-run .head{ border-left:8px solid var(--green); }
+    .a-push  .dash{ background: linear-gradient(90deg, rgba(59,130,246,.6), #a78bfa); }  .a-push .head{ border-left:8px solid var(--purple); }
+
+    /* use list */
+    .use-list { list-style:none; display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:6px; }
+    .use-list li { display:flex; gap:12px; align-items:flex-start; background: var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:15px 17px; font-size:.9rem; color:#adbbd0; }
+    .use-list li::before { content:"✓"; flex:none; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; background: rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.3); color: var(--green); font-size:.7rem; font-weight:700; }
+
+    /* tags */
+    .tag-row { display:flex; flex-wrap:wrap; gap:8px; margin: 16px 0; }
+    .tag { display:inline-flex; gap:5px; background: rgba(29,99,237,.14); color:#7aabff; border:1px solid rgba(29,99,237,.3); border-radius:6px; padding:4px 12px; font-size:.76rem; font-weight:600; font-family: var(--mono); }
+
+    /* terminal */
+    .terminal { border-radius:11px; overflow:hidden; border:1px solid rgba(255,255,255,.07); box-shadow: 0 18px 44px rgba(0,0,0,.5); margin: 16px 0; }
+    .term-bar { background:#1e2535; padding:9px 14px; display:flex; align-items:center; gap:7px; }
+    .term-bar .d { width:11px; height:11px; border-radius:50%; }
+    .dr{background:#ff5f57;} .dy{background:#ffbd2e;} .dg{background:#28c840;}
+    .term-name { flex:1; text-align:center; font-size:.7rem; color: var(--text-muted); font-family: var(--mono); margin-right:31px; }
+    .term-body { background:#0a0e16; padding:18px 20px; font-family: var(--mono); font-size:.84rem; line-height:1.7; overflow-x:auto; user-select:text; min-height: 90px; }
+    .t-prompt{color: var(--green);} .t-path{color:#60a5fa;} .t-cmd{color:#e2e8f0;}
+    .t-comment{color:#3b4d63;} .t-output{color:#64748b; display:block; font-size:.8rem;} .t-success{color: var(--green); display:block;}
+    .cursor { display:inline-block; width:8px; height:1.1em; background:#22c55e; vertical-align:-2px; animation: blink 1s steps(1) infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+    .df-from{color:#c084fc;} .df-cmd{color:#38bdf8;} .df-string{color:#86efac;} .df-comment{color:#374151;} .df-kw{color:#fbbf24;}
+
+    /* steps */
+    .steps-track { position: relative; padding-left: 26px; margin-top: 10px; }
+    .steps-track::before { content:""; position:absolute; left:13px; top:18px; bottom:18px; width:2px; background: linear-gradient(to bottom, var(--blue), var(--purple), transparent); }
+    .step { position: relative; margin-bottom: 30px; padding-left: 34px; }
+    .step:last-child { margin-bottom: 0; }
+    .step-num { position:absolute; left:-13px; top:0; width:30px; height:30px; border-radius:50%; background:#0d1422; border:2px solid var(--blue); display:flex; align-items:center; justify-content:center; font-size:.72rem; font-weight:800; color:#7aabff; font-family: var(--mono); box-shadow:0 0 12px rgba(29,99,237,.35); transition: box-shadow .25s, color .25s, border-color .25s; }
+    .step:hover .step-num { border-color: var(--blue-light); color:#fff; box-shadow:0 0 0 4px rgba(29,99,237,.2), 0 0 20px rgba(29,99,237,.6); }
+    .step-head { display:flex; align-items:baseline; gap:10px; margin-bottom:6px; }
+    .step-badge { font-size:.66rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; padding:2px 8px; border-radius:4px; background: rgba(34,197,94,.1); color: var(--green); border:1px solid rgba(34,197,94,.2); }
+    .step-badge.warn { background: rgba(245,158,11,.1); color: var(--orange); border-color: rgba(245,158,11,.2); }
+    .step p { font-size:.93rem; }
+
+    /* inline code */
+    .win-body :not(pre) > code { font-family: var(--mono); font-size:.85em; background: rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.09); border-radius:4px; padding:2px 6px; color:#93c5fd; }
+
+    /* command cheat sheet */
+    .cheat { margin-top: 10px; border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+    .cheat-row { display:grid; grid-template-columns: 1fr 1fr; gap:0; border-bottom:1px solid var(--border); }
+    .cheat-row:last-child { border-bottom:0; }
+    .cheat-row > div { padding:11px 15px; }
+    .cheat-row code { font-family: var(--mono); font-size:.82rem; color:#93c5fd; background:none!important; border:none!important; padding:0!important; }
+    .cheat-row .desc { font-size:.85rem; color: var(--text-muted); border-left:1px solid var(--border); }
+    .cheat-row.head > div { background: var(--bg-card2); font-size:.68rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color: var(--text-muted); }
+
+    .about-row { display:flex; align-items:center; gap:18px; }
+    .about-avatar { width:64px; height:64px; border-radius:16px; background: linear-gradient(160deg,#1f6bf0,#0c3aa0); display:flex; align-items:center; justify-content:center; font-size:1.8rem; font-weight:800; box-shadow:0 8px 20px rgba(0,0,0,.4); }
+
+    /* ─────────────────────────────────────────
+       DOCK
+    ───────────────────────────────────────── */
+
+    #dock {
+      position: fixed;
+      bottom: 14px; left: 50%; transform: translateX(-50%);
+      z-index: 9500;
+      display: flex; align-items: flex-end; gap: 10px;
+      padding: 10px 14px;
+      background: rgba(13,26,60,0.5);
+      backdrop-filter: blur(22px) saturate(160%);
+      -webkit-backdrop-filter: blur(22px) saturate(160%);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.5);
+    }
+    .dock-item {
+      position: relative;
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      cursor: pointer;
+      background: linear-gradient(160deg, #1f6bf0, #0c3aa0);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 12px rgba(0,0,0,0.35);
+      transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .dock-item.doc   { background: linear-gradient(160deg,#2b3650,#161d2e); }
+    .dock-item.term  { background: linear-gradient(160deg,#0d1117,#000); border:1px solid rgba(255,255,255,0.12); }
+    .dock-item.green { background: linear-gradient(160deg,#22c55e,#0f7a38); }
+    .dock-item.amber { background: linear-gradient(160deg,#f59e0b,#a8650a); }
+    .dock-item.purple{ background: linear-gradient(160deg,#a78bfa,#6d3fd6); }
+    .dock-item:hover { transform: translateY(-12px) scale(1.18); }
+    .dock-item .tip {
+      position: absolute; bottom: calc(100% + 12px); left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.85); color:#fff; font-size:.72rem; font-weight:600;
+      padding: 4px 10px; border-radius: 6px; white-space: nowrap; opacity: 0; pointer-events: none;
+      transition: opacity 0.15s; font-family: var(--sans);
+    }
+    .dock-item:hover .tip { opacity: 1; }
+    .dock-item .run-dot {
+      position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%);
+      width: 5px; height: 5px; border-radius: 50%; background: #fff; opacity: 0;
+    }
+    .dock-item.running .run-dot { opacity: 0.9; }
+    .dock-sep { width:1px; align-self:stretch; margin:6px 4px; background: rgba(255,255,255,0.14); }
+
+    /* ─────────────────────────────────────────
+       HINT TOAST
+    ───────────────────────────────────────── */
+    #hint {
+      position: fixed; top: 48px; left: 50%; transform: translateX(-50%);
+      z-index: 9600;
+      background: rgba(13,26,60,0.7); backdrop-filter: blur(14px);
+      border: 1px solid var(--border-blue); border-radius: 100px;
+      padding: 8px 18px; font-size: 0.82rem; color: #cfe0ff;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      transition: opacity 0.5s; pointer-events: none;
+    }
+    #hint.gone { opacity: 0; }
+
+    /* ─────────────────────────────────────────
+       BOOT SCREEN
+    ───────────────────────────────────────── */
+    #boot {
+      position: fixed; inset: 0; z-index: 10000;
+      background: radial-gradient(ellipse 90% 80% at 50% 35%, #0d2f8f 0%, #061a52 55%, #030d2c 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 26px;
+      transition: opacity 0.6s ease;
+    }
+    #boot.gone { opacity: 0; pointer-events: none; }
+    .boot-logo {
+      width: 96px; height: 96px;
+      animation: bootfloat 3s ease-in-out infinite;
+      filter: drop-shadow(0 0 24px rgba(59,126,245,0.6));
+    }
+    @keyframes bootfloat { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-12px);} }
+    .boot-title { font-size: 1.6rem; font-weight: 800; letter-spacing: 0.02em; color: #eaf1ff; }
+    .boot-log {
+      font-family: var(--mono); font-size: 0.78rem; color: #6f86b8;
+      height: 18px; text-align: center; min-width: 320px;
+    }
+    .boot-bar {
+      width: 280px; height: 5px; border-radius: 100px;
+      background: rgba(255,255,255,0.12); overflow: hidden;
+    }
+    .boot-fill {
+      width: 0%; height: 100%; border-radius: 100px;
+      background: linear-gradient(90deg, #3b7ef5, #60a5fa, #a78bfa);
+      box-shadow: 0 0 12px rgba(59,126,245,0.7);
+      transition: width 0.25s ease;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════════════ BOOT SCREEN ═══════════════ -->
+  <div id="boot">
+    <svg class="boot-logo" viewBox="0 0 24 24" fill="#fff" xmlns="http://www.w3.org/2000/svg"><path d="M3 11h3v3H3zm4 0h3v3H7zm4 0h3v3h-3zM7 7h3v3H7zm4 0h3v3h-3zm0-4h3v3h-3zM21 11.5s-1.4-1-3-.7c-.2-1.3-1.5-2-1.5-2s-1 1.2-.7 2.6c-1 .3-2 .5-2 .5H1.5c-.5 4 2 7.6 6.5 7.6 4 0 7-2 8.5-5.5 1.7.1 2.9-1.2 3-2.4-.4-.2-.7 0-1-.1z"/></svg>
+    <div class="boot-title">DockerOS</div>
+    <div class="boot-log" id="boot-log">starting docker engine…</div>
+    <div class="boot-bar"><div class="boot-fill" id="boot-fill"></div></div>
+  </div>
+
+  <!-- ═══════════════ DESKTOP ═══════════════ -->
+  <div id="desktop">
+    <div class="float-box fb1"></div>
+    <div class="float-box fb2"></div>
+    <div class="float-box fb3"></div>
+    <div class="float-box fb4"></div>
+    <svg class="whale" viewBox="0 0 200 100" fill="white" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 60 q0-22 26-22 l60 0 q30 0 44 18 q14-6 26-4 q-8 8-6 16 q4 8-2 16 l-130 0 q-26 0-26-22 z"/>
+      <circle cx="40" cy="52" r="3" fill="#04123a"/>
+    </svg>
+
+    <!-- ICONS -->
+    <div id="icon-layer">
+      <div class="desktop-icon" data-win="readme"   style="top:6px;   left:8px;"><div class="ico doc">📄</div><div class="label">README.md</div></div>
+      <div class="desktop-icon" data-win="concepts" style="top:118px; left:8px;"><div class="ico">🧩</div><div class="label">Concepts</div></div>
+      <div class="desktop-icon" data-win="diagram"  style="top:230px; left:8px;"><div class="ico purple">🔀</div><div class="label">flow.diagram</div></div>
+      <div class="desktop-icon" data-win="usecases" style="top:342px; left:8px;"><div class="ico green">✓</div><div class="label">When to use</div></div>
+      <div class="desktop-icon" data-win="setup"    style="top:454px; left:8px;"><div class="ico amber">🚀</div><div class="label">Get Started</div></div>
+
+      <div class="desktop-icon" data-win="dockerfile" style="top:6px;   right:8px;"><div class="ico amber">📜</div><div class="label">Dockerfile</div></div>
+      <div class="desktop-icon" data-win="terminal"   style="top:118px; right:8px;"><div class="ico term">▤</div><div class="label">askgit.term</div></div>
+      <div class="desktop-icon" data-win="tryit"      style="top:230px; right:8px;"><div class="ico green">⌨</div><div class="label">try-it.sh</div></div>
+      <div class="desktop-icon" data-win="about"      style="top:342px; right:8px;"><div class="ico">👤</div><div class="label">About</div></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ MENU BAR ═══════════════ -->
+  <div id="menubar">
+    <div class="mb-logo">
+      <svg viewBox="0 0 24 24" fill="#fff" xmlns="http://www.w3.org/2000/svg"><path d="M3 11h3v3H3zm4 0h3v3H7zm4 0h3v3h-3zM7 7h3v3H7zm4 0h3v3h-3zm0-4h3v3h-3zM21 11.5s-1.4-1-3-.7c-.2-1.3-1.5-2-1.5-2s-1 1.2-.7 2.6c-1 .3-2 .5-2 .5H1.5c-.5 4 2 7.6 6.5 7.6 4 0 7-2 8.5-5.5 1.7.1 2.9-1.2 3-2.4-.4-.2-.7 0-1-.1z"/></svg>
+      DockerOS
+    </div>
+    <span class="mb-item" style="font-weight:700;">File</span>
+    <span class="mb-item">Edit</span>
+    <span class="mb-item">View</span>
+    <span class="mb-item">Window</span>
+    <span class="mb-item">Help</span>
+    <div class="mb-right">
+      <span class="wifi">⌃ Docker running</span>
+      <span class="battery">🔋 100%</span>
+      <span id="clock">--:--</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════ WINDOWS ═══════════════ -->
+
+  <!-- README -->
+  <div class="window" id="win-readme" style="top:80px; left:120px; width:760px;">
+    <div class="titlebar">
+      <div class="traffic"><span class="tl tl-red" data-act="close"><span>×</span></span><span class="tl tl-yellow" data-act="min"><span>−</span></span><span class="tl tl-green"><span>+</span></span></div>
+      <span class="win-title">README.md — Docker</span>
+    </div>
+    <div class="win-body">
+      <div class="eyebrow">Software Development Presentation</div>
+      <h1>Ship Anywhere with <span class="h1-accent">Docker</span></h1>
+      <p class="lead">Package your app and <strong>everything it needs</strong> into a container that runs the same on any machine — your laptop, your teammate's laptop, or a server in the cloud.</p>
+      <h2 style="margin-top:26px;">It works on my machine.</h2>
+      <p>You build something, it runs perfectly. Someone else clones it and gets errors — wrong Python version, missing library, different operating system. This is so common it became a meme. Docker kills the meme.</p>
+      <p>Docker bundles your app with its <strong>exact runtime environment</strong> — the OS layer, dependencies, config, all of it — into a single unit called a <strong>container</strong>. If it runs on your machine, it runs on anyone's.</p>
+      <div class="problem-box">
+        <span class="qm">&ldquo;</span>
+        <p>Works on my machine? Ship your machine. That's essentially what a container is.</p>
+      </div>
+      <p style="margin-top:20px; color:#7a8aa0!important; font-size:.9rem;">↪ Double-click the other icons on the desktop, or use the dock below, to explore each part.</p>
+    </div>
+  </div>
+
+  <!-- CONCEPTS -->
+  <div class="window" id="win-concepts" style="top:110px; left:180px; width:720px;">
+    <div class="titlebar">
+      <div class="traffic"><span class="tl tl-red" data-act="close"><span>×</span></span><span class="tl tl-yellow" data-act="min"><span>−</span></span><span class="tl tl-green"><span>+</span></span></div>
+      <span class="win-title">Concepts</span>
+    </div>
+    <div class="win-body">
+      <div class="eyebrow">Key Concepts</div>
+      <h2>Four things to know.</h2>
+      <p style="margin-bottom:20px;">Docker has a small vocabulary. Learn these four terms and the rest makes sense.</p>
+      <div class="card-grid">
+        <div class="card"><div class="ci">▢</div><h3>Image</h3><p>A read-only snapshot of your app and its environment. Think of it as the blueprint — shareable, versioned, stored on Docker Hub.</p></div>
+        <div class="card"><div class="ci">▶</div><h3>Container</h3><p>A live, running instance of an image. Start, stop, pause, and delete containers without ever touching the image itself.</p></div>
+        <div class="card"><div class="ci">📜</div><h3>Dockerfile</h3><p>A plain text file with instructions for building an image. Defines the base OS, installs dependencies, copies your code.</p></div>
+        <div class="card"><div class="ci">☁</div><h3>Docker Hub</h3><p>A public registry for sharing images. Like GitHub, but for Docker images. Pull official images for Postgres, Node, Python, and more.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIAGRAM -->
+  <div class="window" id="win-diagram" style="top:130px; left:140px; width:760px;">
+    <div class="titlebar">
+      <div class="traffic"><span class="tl tl-red" data-act="close"><span>×</span></span><span class="tl tl-yellow" data-act="min"><span>−</span></span><span class="tl tl-green"><span>+</span></span></div>
+      <span class="win-title">flow.diagram</span>
+    </div>
+    <div class="win-body">
+      <div class="eyebrow">How the pieces connect</div>
+      <h2 style="margin-bottom:20px;">From file to running container.</h2>
+      <div class="diagram">
+        <div class="diagram-label">Build · Run · Push</div>
+        <div class="diagram-flow">
+          <div class="dbox df-box"><span class="bi">📜</span><span class="bt">Dockerfile</span><span class="bs">instructions</span></div>
+          <div class="darrow a-build"><span class="al">docker build</span><span class="ln"><span class="dash"></span><span class="head"></span></span></div>
+          <div class="dbox image-box"><span class="bi">▢</span><span class="bt">Image</span><span class="bs">read-only blueprint</span></div>
+          <div class="darrow a-run"><span class="al">docker run</span><span class="ln"><span class="dash"></span><span class="head"></span></span></div>
+          <div class="dbox cont-box"><span class="bi">▶</span><span class="bt">Container</span><span class="bs">running process</span></div>
+          <div class="darrow a-push"><span class="al">docker push</span><span class="ln"><span class="dash"></span><span class="head"></span></span></div>
+          <div class="dbox hub-box"><span class="bi">☁</span><span class="bt">Docker Hub</span><span class="bs">shared registry</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- USE CASES -->
+  <div class="window" id="win-usecases" style="top:150px; left:200px; width:700px;">
+    <div class="titlebar">
+      <div class="traffic"><span class="tl tl-red" data-act="close"><span>×</span></span><span class="tl tl-yellow" data-act="min"><span>−</span></span><span class="tl tl-green"><span>+</span></span></div>
+      <span class="win-title">When to use Docker</span>
+    </div>
+    <div class="win-body">
+      <div class="eyebrow">Use Cases</div>
+      <h2>When does Docker actually help?</h2>
+      <p style="margin-bottom:18px;">Not every project needs Docker, but it shines in these situations:</p>
+      <ul class="use-list">
+        <li>You want others to run your app with zero setup beyond Docker itself</li>
+        <li>Your app has complex dependencies — databases, ML models, multiple services</li>
+        <li>You're deploying to a server and need consistent environments</li>
+        <li>You want to isolate an app from the rest of your system</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- DOCKERFILE -->
+  <div class="window" id="win-dockerfile" style="top:100px; left:260px; width:760px;">
+    <div class="titlebar">
+      <div class="traffic"><span class="tl tl-red" data-act="close"><span>×</span></span><span class="tl tl-yellow" data-act="min"><span>−</span></span><span class="tl tl-green"><span>+</span></span></div>
+      <span class="win-title">Dockerfile</span>
+    </div>
+    <div class="win-body">
+      <div class="eyebrow">Under the Hood</div>
+      <h2>How a Dockerfile works.</h2>
+      <p>A Dockerfile is a recipe. Each line is an instruction. Docker executes them top to bottom and produces a layered image. Here's a simplified version of the one powering askgit:</p>
+      <div class="terminal">
+        <div class="term-bar"><span class="d dr"></span><span class="d dy"></span><span class="d dg"></span><span class="term-name">Dockerfile</span></div>
+        <div class="term-body"><code>
+<span class="df-from">FROM</span> <span class="df-string">ollama/ollama</span>                          <span class="df-comment"># start from an existing base image</span><br><br>
+<span class="df-from">RUN</span> <span class="df-cmd">apt-get install -y</span> <span class="df-string">python3 python3-pip</span>    <span class="df-comment"># install system dependencies</span><br><br>
+<span class="df-from">COPY</span> <span class="df-string">server/ ./server/</span>                      <span class="df-comment"># copy your app code in</span><br><br>
+<span class="df-from">RUN</span> <span class="df-cmd">ollama pull</span> <span class="df-string">llama3.2:3b</span>                  <span class="df-comment"># bake the AI model into the image</span><br><br>
+<span class="df-kw">ENTRYPOINT</span> <span class="df-string">["./entrypoint.sh"]</span>              <span class="df-comment"># what runs when the container starts</span>
+        </code></div>
+      </div>
+      <p>Each instruction creates a <strong>layer</strong> in the image. Docker caches layers, so rebuilds are fast — it only re-runs the steps that changed.</p>
+    </div>
+  </div>
+
+  <!-- TERMINAL / askgit demo -->
+  <div class="window" id="win-terminal" style="top:120px; left:300px; width:740px;">
+    <div class="titlebar">
+      <div class="traffic"><span class="tl tl-red" data-act="close"><span>×</span></span><span class="tl tl-yellow" data-act="min"><span>−</span></span><span class="tl tl-green"><span>+</span></span></div>
+      <span class="win-title">askgit — bash — 80×24</span>
+    </div>
+    <div class="win-body">
+      <div class="eyebrow">Real Example</div>
+      <h2>askgit — a local AI Git tutor.</h2>
+      <p>askgit runs a full AI model <strong>entirely inside a Docker container</strong> — no API keys, no cloud dependency, no configuration. The model is baked into the image. Pull it once, run it anywhere.</p>
+      <div class="tag-row">
+        <span class="tag">FastAPI</span><span class="tag">Ollama</span><span class="tag">llama3.2:3b</span><span class="tag">~5GB image</span>
+      </div>
+      <div class="terminal">
+        <div class="term-bar"><span class="d dr"></span><span class="d dy"></span><span class="d dg"></span><span class="term-name">bash — askgit</span></div>
+        <div class="term-body"><code id="typed-term"></code><span class="cursor" id="term-cursor"></span></div>
+      </div>
+      <p>That's it. Docker pulls the image, starts the container, and you're talking to a local AI.</p>
+    </div>
+  </div>
+
+  <!-- TRY IT -->
+  <div class="window" id="win-tryit" style="top:90px; left:240px; width:760px;">
+    <div class="titlebar">
+      <div class="traffic"><span class="tl tl-red" data-act="close"><span>×</span></span><span class="tl tl-yellow" data-act="min"><span>−</span></span><span class="tl tl-green"><span>+</span></span></div>
+      <span class="win-title">try-it.sh</span>
+    </div>
+    <div class="win-body">
+      <div class="eyebrow">Hands-On</div>
+      <h2>Try it yourself.</h2>
+      <p style="margin-bottom:18px;">Run askgit on your own machine in five steps. Only prerequisite: Docker Desktop.</p>
+      <div class="steps-track">
+        <div class="step">
+          <div class="step-num">01</div>
+          <div class="step-head"><h3>Install Docker Desktop</h3><span class="step-badge">One time</span></div>
+          <p>Download from <strong>docker.com</strong> and run the installer. Once it's open you'll see a whale icon in your menu bar — that means Docker is running.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <div class="step-head"><h3>Open your terminal and run one command</h3></div>
+          <p>Pick a folder you can find again first — this downloads a <code>chat.sh</code> file into your current directory, and that's where you'll re-run it from later. Your home folder is a safe bet:</p>
+          <div class="terminal">
+            <div class="term-bar"><span class="d dr"></span><span class="d dy"></span><span class="d dg"></span><span class="term-name">Terminal</span></div>
+            <div class="term-body"><code><span class="t-prompt">~ $</span> <span class="t-cmd">cd ~</span><br><span class="t-prompt">~ $</span> <span class="t-cmd">curl -s https://raw.githubusercontent.com/dillon-webster/askgit/main/chat.sh -o chat.sh &amp;&amp; chmod +x chat.sh &amp;&amp; ./chat.sh</span></code></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <div class="step-head"><h3>Wait for the pull</h3><span class="step-badge warn">~5 minutes</span></div>
+          <p>The first run downloads about <strong>5GB</strong> — the entire runtime, server, and AI model bundled together. You'll see progress bars. Go grab a coffee. Every run after this is instant because Docker caches the image.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">04</div>
+          <div class="step-head"><h3>Start chatting</h3><span class="step-badge">You're live</span></div>
+          <p>When you see a <code>You:</code> prompt, the container is up and the model is loaded. Ask it anything about Git — commands, concepts, workflows, debugging. Everything runs locally. Nothing leaves your machine. Press <code>Ctrl+C</code> to exit the chat (the container keeps running in the background).</p>
+        </div>
+        <div class="step">
+          <div class="step-num">05</div>
+          <div class="step-head"><h3>Re-running it later</h3><span class="step-badge">Instant</span></div>
+          <p>No re-downloading — the image is cached for good. Just go back to the folder you ran it in and run the script again:</p>
+          <div class="terminal">
+            <div class="term-bar"><span class="d dr"></span><span class="d dy"></span><span class="d dg"></span><span class="term-name">Terminal</span></div>
+            <div class="term-body"><code><span class="t-prompt">~ $</span> <span class="t-cmd">cd ~</span>          <span class="t-comment"># wherever you ran it the first time</span><br><span class="t-prompt">~ $</span> <span class="t-cmd">./chat.sh</span><br><span class="t-success">You: </span></code></div>
+          </div>
+          <p style="margin-top:10px;"><code>chat.sh</code> reuses the existing container if it's there, or restarts it in a second or two — you're back at the <code>You:</code> prompt almost instantly.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GET STARTED -->
+  <div class="window" id="win-setup" style="top:70px; left:170px; width:800px;">
+    <div class="titlebar">
+      <div class="traffic"><span class="tl tl-red" data-act="close"><span>×</span></span><span class="tl tl-yellow" data-act="min"><span>−</span></span><span class="tl tl-green"><span>+</span></span></div>
+      <span class="win-title">Get Started — Docker Compose</span>
+    </div>
+    <div class="win-body">
+      <div class="eyebrow">Do It Yourself</div>
+      <h2>A real example: my school project.</h2>
+      <p>Real apps aren't one thing. My school project is <strong>three</strong> pieces that have to run together:</p>
+      <ul class="use-list" style="margin:16px 0;">
+        <li>A <strong>React + Vite</strong> frontend</li>
+        <li>A <strong>FastAPI</strong> (Python) backend</li>
+        <li>A <strong>Postgres</strong> database</li>
+      </ul>
+      <p>Wiring those up by hand — right Python version, right Node version, install Postgres, make them talk to each other — is exactly the "works on my machine" nightmare. <strong>Docker Compose</strong> describes all three in one file and starts them with one command.</p>
+
+      <div class="steps-track">
+
+        <div class="step">
+          <div class="step-num">01</div>
+          <div class="step-head"><h3>Each piece gets its own <code>Dockerfile</code></h3></div>
+          <p>Same recipe idea as before, one per service. The backend's is tiny:</p>
+          <div class="terminal">
+            <div class="term-bar"><span class="d dr"></span><span class="d dy"></span><span class="d dg"></span><span class="term-name">backend/Dockerfile</span></div>
+            <div class="term-body"><code>
+<span class="df-from">FROM</span> <span class="df-string">python:3.14.3</span>            <span class="df-comment"># Python runtime</span><br>
+<span class="df-from">COPY</span> <span class="df-string">. .</span>                      <span class="df-comment"># copy the backend code in</span><br>
+<span class="df-from">RUN</span> <span class="df-cmd">pip install</span> <span class="df-string">-r requirements.txt</span>  <span class="df-comment"># install deps</span><br>
+<span class="df-kw">EXPOSE</span> <span class="df-string">8000</span><br>
+<span class="df-kw">CMD</span> <span class="df-string">["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]</span>
+            </code></div>
+          </div>
+          <p style="font-size:.9rem; color:#7a8aa0!important;">The frontend has a matching one: <code>FROM node:18</code> → <code>npm install</code> → <code>npm run preview</code>.</p>
+        </div>
+
+        <div class="step">
+          <div class="step-num">02</div>
+          <div class="step-head"><h3>One <code>docker-compose.yml</code> ties them together</h3></div>
+          <p>This declares all three services, their ports, and how they depend on each other. <code>build:</code> means "build from that folder's Dockerfile"; <code>image:</code> means "pull this one from Docker Hub":</p>
+          <div class="terminal">
+            <div class="term-bar"><span class="d dr"></span><span class="d dy"></span><span class="d dg"></span><span class="term-name">docker-compose.yml</span></div>
+            <div class="term-body"><code>
+<span class="df-cmd">services:</span><br>
+&nbsp;&nbsp;<span class="df-kw">backend:</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="df-cmd">build:</span> <span class="df-string">./backend/</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="df-cmd">ports:</span> <span class="df-string">["8000:8000"]</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="df-cmd">depends_on:</span> <span class="df-string">[db]</span>            <span class="df-comment"># wait for the database</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="df-cmd">environment:</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="df-string">DATABASE_URL: postgresql://dillon:postgres@db:5432/school-api</span><br>
+&nbsp;&nbsp;<span class="df-kw">frontend:</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="df-cmd">build:</span> <span class="df-string">./frontend/</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="df-cmd">ports:</span> <span class="df-string">["4173:4173"]</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="df-cmd">depends_on:</span> <span class="df-string">[backend]</span><br>
+&nbsp;&nbsp;<span class="df-kw">db:</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="df-cmd">image:</span> <span class="df-string">postgres:15</span>            <span class="df-comment"># pulled straight from Docker Hub</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="df-cmd">volumes:</span> <span class="df-string">[postgres_data:/var/lib/postgresql/data]</span>  <span class="df-comment"># data survives restarts</span>
+            </code></div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">03</div>
+          <div class="step-head"><h3>Start the whole stack</h3><span class="step-badge">One command</span></div>
+          <p>From the project root — this builds the two images, pulls Postgres, creates a private network so they can find each other, and starts all three:</p>
+          <div class="terminal">
+            <div class="term-bar"><span class="d dr"></span><span class="d dy"></span><span class="d dg"></span><span class="term-name">Terminal</span></div>
+            <div class="term-body"><code><span class="t-prompt">~/school $</span> <span class="t-cmd">docker compose up --build</span><br><span class="t-output">[+] Running 3/3</span><span class="t-success"> ✔ Container school-db-1        Started</span><span class="t-success"> ✔ Container school-backend-1   Started</span><span class="t-success"> ✔ Container school-frontend-1  Started</span></code></div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">04</div>
+          <div class="step-head"><h3>It's all running</h3><span class="step-badge">You're live</span></div>
+          <p>Three services, three ports, talking to each other on a private network — and the only thing anyone installed was Docker:</p>
+          <div class="cheat" style="margin-top:6px;">
+            <div class="cheat-row head"><div>Service</div><div class="desc">Where it lives</div></div>
+            <div class="cheat-row"><div><code>frontend</code></div><div class="desc">localhost:4173</div></div>
+            <div class="cheat-row"><div><code>backend</code></div><div class="desc">localhost:8000</div></div>
+            <div class="cheat-row"><div><code>db (postgres)</code></div><div class="desc">internal — backend reaches it at <code>db:5432</code></div></div>
+          </div>
+          <p style="margin-top:14px;"><strong>The key trick:</strong> the backend finds the database at the hostname <code>db</code> — the service name. Docker Compose gives every service a name on a shared network, so containers talk to each other without hardcoded IPs.</p>
+        </div>
+
+      </div>
+
+      <h3 style="margin-top:30px;">Compose cheat-sheet</h3>
+      <p style="margin-bottom:10px;">The handful you'll actually use:</p>
+      <div class="cheat">
+        <div class="cheat-row head"><div>Command</div><div class="desc">What it does</div></div>
+        <div class="cheat-row"><div><code>docker compose up --build</code></div><div class="desc">Build + start every service</div></div>
+        <div class="cheat-row"><div><code>docker compose up -d</code></div><div class="desc">Start in the background (detached)</div></div>
+        <div class="cheat-row"><div><code>docker compose down</code></div><div class="desc">Stop and remove everything</div></div>
+        <div class="cheat-row"><div><code>docker compose logs -f</code></div><div class="desc">Tail logs from all services</div></div>
+        <div class="cheat-row"><div><code>docker compose ps</code></div><div class="desc">List the running services</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <div class="window" id="win-about" style="top:170px; left:320px; width:560px;">
+    <div class="titlebar">
+      <div class="traffic"><span class="tl tl-red" data-act="close"><span>×</span></span><span class="tl tl-yellow" data-act="min"><span>−</span></span><span class="tl tl-green"><span>+</span></span></div>
+      <span class="win-title">About</span>
+    </div>
+    <div class="win-body">
+      <div class="about-row">
+        <div class="about-avatar">DW</div>
+        <div>
+          <h2 style="margin-bottom:4px;">Dillon Webster</h2>
+          <p style="margin:0; color:#7a8aa0!important;">Software Development</p>
+        </div>
+      </div>
+      <p style="margin-top:20px;">This presentation is a single <code>index.html</code> file — plain HTML, CSS, and vanilla JavaScript. The whole desktop, the draggable windows, the dock: no frameworks, no build step.</p>
+      <div class="tag-row"><span class="tag">docker.com</span><span class="tag">hub.docker.com</span></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ DOCK ═══════════════ -->
+  <div id="dock">
+    <div class="dock-item doc"    data-win="readme">📄<span class="tip">README</span><span class="run-dot"></span></div>
+    <div class="dock-item"        data-win="concepts">🧩<span class="tip">Concepts</span><span class="run-dot"></span></div>
+    <div class="dock-item purple" data-win="diagram">🔀<span class="tip">Flow diagram</span><span class="run-dot"></span></div>
+    <div class="dock-item green"  data-win="usecases">✓<span class="tip">When to use</span><span class="run-dot"></span></div>
+    <div class="dock-item amber"  data-win="setup">🚀<span class="tip">Get Started</span><span class="run-dot"></span></div>
+    <div class="dock-sep"></div>
+    <div class="dock-item amber"  data-win="dockerfile">📜<span class="tip">Dockerfile</span><span class="run-dot"></span></div>
+    <div class="dock-item term"   data-win="terminal">▤<span class="tip">askgit terminal</span><span class="run-dot"></span></div>
+    <div class="dock-item green"  data-win="tryit">⌨<span class="tip">Try it</span><span class="run-dot"></span></div>
+    <div class="dock-sep"></div>
+    <div class="dock-item"        data-win="about">👤<span class="tip">About</span><span class="run-dot"></span></div>
+  </div>
+
+  <div id="hint">Double-click an icon — or tap the dock — to open a window. Drag the title bars to move them around.</div>
+
+  <script>
+  (function () {
+    "use strict";
+
+    var zCounter = 100;
+    var openWindows = {};   // id -> true
+
+    /* ── Clock ── */
+    function tick() {
+      var d = new Date();
+      var h = d.getHours(), m = d.getMinutes();
+      document.getElementById("clock").textContent =
+        (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m;
+    }
+    tick(); setInterval(tick, 10000);
+
+    /* ── Window helpers ── */
+    function winEl(id) { return document.getElementById("win-" + id); }
+
+    function focusWindow(win) {
+      win.style.zIndex = ++zCounter;
+      document.querySelectorAll(".window").forEach(function (w) { w.classList.remove("focused"); });
+      win.classList.add("focused");
+    }
+
+    function updateDock() {
+      document.querySelectorAll(".dock-item").forEach(function (di) {
+        var id = di.getAttribute("data-win");
+        di.classList.toggle("running", !!openWindows[id]);
+      });
+    }
+
+    function openWindow(id) {
+      var win = winEl(id);
+      if (!win) return;
+
+      // already open → just focus + un-minimize
+      if (openWindows[id]) {
+        win.classList.remove("minimizing");
+        focusWindow(win);
+        return;
+      }
+
+      openWindows[id] = true;
+      win.classList.add("open");
+      focusWindow(win);
+      // allow display:flex to apply before transitioning in
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () { win.classList.add("shown"); });
+      });
+      updateDock();
+
+      if (id === "terminal") startTerminalTyping();
+    }
+
+    function closeWindow(win) {
+      var id = win.id.replace("win-", "");
+      win.classList.remove("shown");
+      setTimeout(function () {
+        win.classList.remove("open", "minimizing", "focused");
+        win.style.transform = "";
+      }, 180);
+      openWindows[id] = false;
+      updateDock();
+    }
+
+    function minimizeWindow(win) {
+      win.classList.add("minimizing");
+      win.classList.remove("shown");
+      setTimeout(function () { win.classList.remove("open"); }, 200);
+      // keep openWindows true so dock keeps the running dot; clicking dock reopens
+    }
+
+    /* ── Wire desktop icons (double-click) ── */
+    document.querySelectorAll(".desktop-icon").forEach(function (icon) {
+      icon.addEventListener("dblclick", function () {
+        openWindow(icon.getAttribute("data-win"));
+      });
+      // single click = select highlight
+      icon.addEventListener("click", function (e) {
+        document.querySelectorAll(".desktop-icon").forEach(function (i) { i.classList.remove("selected"); });
+        icon.classList.add("selected");
+        e.stopPropagation();
+      });
+    });
+    document.getElementById("desktop").addEventListener("click", function () {
+      document.querySelectorAll(".desktop-icon").forEach(function (i) { i.classList.remove("selected"); });
+    });
+
+    /* ── Wire dock (single click) ── */
+    document.querySelectorAll(".dock-item").forEach(function (di) {
+      di.addEventListener("click", function () { openWindow(di.getAttribute("data-win")); });
+    });
+
+    /* ── Traffic-light buttons + focus on any click ── */
+    document.querySelectorAll(".window").forEach(function (win) {
+      win.addEventListener("mousedown", function () { focusWindow(win); });
+      win.querySelectorAll(".tl").forEach(function (tl) {
+        tl.addEventListener("click", function (e) {
+          e.stopPropagation();
+          var act = tl.getAttribute("data-act");
+          if (act === "close") closeWindow(win);
+          else if (act === "min") minimizeWindow(win);
+        });
+      });
+    });
+
+    /* ── Dragging ── */
+    document.querySelectorAll(".window").forEach(function (win) {
+      var bar = win.querySelector(".titlebar");
+      var dragging = false, offX = 0, offY = 0;
+
+      bar.addEventListener("mousedown", function (e) {
+        if (e.target.classList.contains("tl") || e.target.closest(".tl")) return;
+        dragging = true;
+        var rect = win.getBoundingClientRect();
+        offX = e.clientX - rect.left;
+        offY = e.clientY - rect.top;
+        win.style.transition = "none";
+        focusWindow(win);
+        e.preventDefault();
+      });
+
+      window.addEventListener("mousemove", function (e) {
+        if (!dragging) return;
+        var x = e.clientX - offX;
+        var y = e.clientY - offY;
+        // keep title bar reachable
+        y = Math.max(40, y);
+        x = Math.min(Math.max(-win.offsetWidth + 80, x), window.innerWidth - 80);
+        win.style.left = x + "px";
+        win.style.top = y + "px";
+      });
+
+      window.addEventListener("mouseup", function () {
+        if (dragging) { dragging = false; win.style.transition = ""; }
+      });
+    });
+
+    /* ── Terminal auto-typing (runs once) ── */
+    var termStarted = false;
+    function startTerminalTyping() {
+      if (termStarted) return;
+      termStarted = true;
+
+      var target = document.getElementById("typed-term");
+      var cursor = document.getElementById("term-cursor");
+
+      // sequence of chunks: {html:..., delay:..., instant:bool}
+      var lines = [
+        { t: '<span class="t-prompt">~ $</span> ', instant: true },
+        { t: 'curl -s https://raw.githubusercontent.com/dillon-webster/askgit/main/chat.sh -o chat.sh && chmod +x chat.sh && ./chat.sh', cls: "t-cmd", type: true },
+        { t: '<br>', instant: true },
+        { t: '<span class="t-output">Unable to find image \'dillonwebster/askgit:latest\' locally</span>', delay: 500 },
+        { t: '<span class="t-output">latest: Pulling from dillonwebster/askgit</span>', delay: 500 },
+        { t: '<span class="t-output">Status: Downloaded newer image for dillonwebster/askgit:latest</span>', delay: 700 },
+        { t: '<span class="t-output">Waiting for server to start...</span>', delay: 600 },
+        { t: '<br>', instant: true },
+        { t: '<span class="t-prompt">You:</span> ', instant: true },
+        { t: "what's the difference between git merge and git rebase?", cls: "t-cmd", type: true },
+        { t: '<br>', instant: true },
+        { t: '<span class="t-output">Bot: Great question! Both combine changes from one branch into</span>', delay: 800 },
+        { t: '<span class="t-output">     another. merge creates a new commit tying the histories</span>', delay: 350 },
+        { t: '<span class="t-output">     together; rebase replays your commits on top for a linear</span>', delay: 350 },
+        { t: '<span class="t-output">     history...</span>', delay: 350 }
+      ];
+
+      var li = 0;
+      function next() {
+        if (li >= lines.length) { return; }
+        var line = lines[li++];
+        if (line.type) {
+          // type char by char inside a span
+          var span = document.createElement("span");
+          span.className = line.cls || "";
+          target.appendChild(span);
+          var chars = line.t.split(""), ci = 0;
+          (function typeChar() {
+            if (ci < chars.length) {
+              span.textContent += chars[ci++];
+              setTimeout(typeChar, 28);
+            } else {
+              setTimeout(next, 250);
+            }
+          })();
+        } else if (line.instant) {
+          target.insertAdjacentHTML("beforeend", line.t);
+          next();
+        } else {
+          setTimeout(function () {
+            target.insertAdjacentHTML("beforeend", line.t);
+            next();
+          }, line.delay || 300);
+        }
+      }
+      next();
+    }
+
+    /* ── Dismiss hint after a bit / on first open ── */
+    var hint = document.getElementById("hint");
+    function killHint() { hint.classList.add("gone"); }
+    document.querySelectorAll(".desktop-icon, .dock-item").forEach(function (el) {
+      el.addEventListener("click", killHint, { once: true });
+    });
+
+    /* ── Boot sequence ── */
+    function runBoot() {
+      var boot = document.getElementById("boot");
+      var fill = document.getElementById("boot-fill");
+      var log  = document.getElementById("boot-log");
+      var steps = [
+        { p: 18,  msg: "starting docker engine…" },
+        { p: 40,  msg: "loading image dillonwebster/askgit:latest" },
+        { p: 62,  msg: "mounting layers  sha256:3f4a…" },
+        { p: 82,  msg: "initializing window manager" },
+        { p: 100, msg: "ready." }
+      ];
+      var i = 0;
+      function step() {
+        if (i >= steps.length) {
+          setTimeout(function () {
+            boot.classList.add("gone");
+            setTimeout(function () { boot.remove(); }, 650);
+            openWindow("readme");
+            setTimeout(killHint, 7000);
+          }, 450);
+          return;
+        }
+        var s = steps[i++];
+        fill.style.width = s.p + "%";
+        log.textContent = s.msg;
+        setTimeout(step, 520);
+      }
+      // first paint, then begin
+      requestAnimationFrame(function () { setTimeout(step, 400); });
+    }
+    runBoot();
+  })();
+  </script>
+</body>
+</html>
